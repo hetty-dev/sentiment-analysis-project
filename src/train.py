@@ -1,20 +1,30 @@
-import pandas as pd
 import argparse
-from sklearn.model_selection import train_test_split
+import os
+
+import pandas as pd
+from joblib import dump
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline, make_pipeline
-import os
-from joblib import dump
 
 
 def load_and_validate_data(data_path: str) -> pd.DataFrame:
     """
-    Loads data from a CSV and ensures it has the required columns.
+    Loads data from a CSV and ensures it has the required columns: 'text' and 'label'.
     """
-    df = pd.read_csv(data_path)
-    if not {"text", "label"}.issubset(df.columns):
-        raise ValueError("CSV must contain 'text' and 'label' columns")
+    try:
+        df = pd.read_csv(data_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Data file not found: {data_path}")
+
+    if df.empty:
+        raise ValueError("CSV is empty")
+
+    required = {"text", "label"}
+    if not required.issubset(df.columns):
+        raise ValueError(f"CSV must contain columns: {sorted(required)}")
+
     return df
 
 def split_data(
